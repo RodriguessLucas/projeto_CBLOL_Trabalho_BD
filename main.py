@@ -6,6 +6,7 @@ from database import *
 
 def main():
     print("Oi")
-        
+    conectar()
+    criar_tabelas()
 
 main()

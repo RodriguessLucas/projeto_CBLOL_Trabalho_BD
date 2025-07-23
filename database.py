@@ -15,7 +15,7 @@ SQL_CRIAR_TABELAS = """
         nome VARCHAR(100) NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS campeoes(
+    CREATE TABLE IF NOT EXISTS personagens(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL
     );
@@ -45,7 +45,7 @@ SQL_CRIAR_TABELAS = """
         id_posicao INTEGER NOT NULL,
 
         CONSTRAINT fk_id_posicao_jogador
-            FOREIGN KEY(id_posicao)
+            FOREIGN KEY (id_posicao)
             REFERENCES posicoes(id)
 
     );
@@ -58,11 +58,11 @@ SQL_CRIAR_TABELAS = """
         id_jogador INTEGER NOT NULL,
 
         CONSTRAINT fk_id_time_contrato_jogador
-            FOREIGN KEY(id_time)
+            FOREIGN KEY (id_time)
             REFERENCES times(id),
 
         CONSTRAINT fk_id_jogador_contrato
-            FOREIGN KEY(id_jogador)
+            FOREIGN KEY (id_jogador)
             REFERENCES jogadores(id)
     );
 
@@ -75,15 +75,15 @@ SQL_CRIAR_TABELAS = """
         id_time_vencedor INTEGER NOT NULL,
 
         CONSTRAINT fk_id_campeonato_partida
-            FOREIGN KEY(id_campeonato)
+            FOREIGN KEY (id_campeonato)
             REFERENCES campeonatos(id),
 
         CONSTRAINT fk_id_time1_partida
-            FOREIGN KEY(id_time1)
+            FOREIGN KEY (id_time1)
             REFERENCES times(id),
 
         CONSTRAINT fk_id_time2_partida
-            FOREIGN KEY(id_time2)
+            FOREIGN KEY (id_time2)
             REFERENCES times(id)
     );
 
@@ -92,27 +92,27 @@ SQL_CRIAR_TABELAS = """
         qntd_abates INTEGER NOT NULL,
         qntd_mortes INTEGER NOT NULL,
         qntd_assistencias INTEGER NOT NULL,
-        lado_mapa VARCHAR(8) NOT NULL
+        lado_mapa VARCHAR(8) NOT NULL,
         id_partida INTEGER NOT NULL,
-        id_jogador INTEGER NOT NULL
+        id_jogador INTEGER NOT NULL,
         id_posicao INTEGER NOT NULL,
-        id_personagem INTERGER NOT NULL,
+        id_personagem INTEGER NOT NULL,
 
         CONSTRAINT fk_id_partida_estatistica
             FOREIGN KEY(id_partida)
             REFERENCES partidas(id),
 
         CONSTRAINT fk_id_jogador_estatistica
-            FOREIGN KEY(id_jogador)
+            FOREIGN KEY (id_jogador)
             REFERENCES jogadores(id),
         
         CONSTRAINT fk_id_posicao_estatistica
-            FOREIGN KEY(id_posicao)
+            FOREIGN KEY (id_posicao)
             REFERENCES posicoes(id),
 
         CONSTRAINT fk_id_personagem_estatistica
-            FOREIGN KEY(id_personagem)
-            REFERENCES personagens(id),
+            FOREIGN KEY( id_personagem)
+            REFERENCES personagens(id)
     );
 
 """
@@ -135,5 +135,7 @@ def criar_tabelas():
         print("Tabelas prontas para uso.")
     except Exception as e:
         print(f"Ocorreu um erro ao criar as tabelas: {e}")
+
+
 
 
