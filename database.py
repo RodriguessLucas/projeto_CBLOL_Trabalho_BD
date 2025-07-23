@@ -1,9 +1,9 @@
 import psycopg2
-
+from datetime import datetime
 DB_CONFIG = {
     "dbname": "banco_cblol",
     "user": "postgres",
-    "password": "postgres2025",
+    "password": "1234",
     "host": "localhost",
     "port": "5432"
 }
@@ -12,18 +12,18 @@ DB_CONFIG = {
 SQL_CRIAR_TABELAS = """
     CREATE TABLE IF NOT EXISTS posicoes(
         id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL UNIQUE
+        nome VARCHAR(100) NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS personagens(
         id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL UNIQUE
+        nome VARCHAR(100) NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS times(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
-        sigla VARCHAR(3) NOT NULL UNIQUE,
+        sigla VARCHAR(3) NOT NULL,
         data_fundacao DATE NOT NULL,
         nacionalidade VARCHAR(100) NOT NULL
     );
@@ -139,18 +139,15 @@ def criar_tabelas():
 
 
 # AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
-
+# Fiz uma alteracao no loop de criar posicoes pq não estava funcionando 
 def cadastrarPosicoes():
     try:
         conexao = conectar()
         cur = conexao.cursor()
 
-        lanes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
-        #comando sql
-        sql = "INSERT INTO posicoes(nome) VALUES(%s)"
-
-        for lane in lanes:
-            cur.execute(sql,(lane,))
+        nomes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
+        for nome in nomes:
+            cur.execute("INSERT INTO posicoes(nome) VALUES(%s)", (nome,))
             conexao.commit()
 
         cur.close()
@@ -159,4 +156,55 @@ def cadastrarPosicoes():
         print(e)
 
 
+# FUNCÃO QUE ADICIONA DIRETO AO BANDO DE DADOS SEM O INPUT DADOS DO 
+# Não passeia data 
+def Adcplyr(nome,inicio_carreira,fim_carreira,nacionalidade,id_posicao):
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("insert into jogadores( nome, data_inicio_carreira,data_fim_carreira, nacionalidade,id_posicao) values (%s,%s,%s,%s,%s)", ( nome,inicio_carreira,fim_carreira, nacionalidade,id_posicao))
+        conexao.commit()
+        cur.close()
+        print("jogador adicionado")
+    except Exception as e :
+        print(e)
+    finally:  
+     conexao.close()
 
+#Adiciona um jogador com input de dados do user
+
+def Adicionarjogadores():
+    try:
+     nome = input("Digite o nome: ")
+     data_ini = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ")
+     data_fim = input("Digite a data de fim da carreira (DD/MM/AAAA ou deixe em branco se ainda estiver ativo): ")
+     nacionalidade = input("Digite a nacionalidade: ")
+#logo logo adicionarei pelo nome da posicao e nao pelo id
+     posicao = input("Digite o ID da posicao: ")
+     data_fim = datetime.strptime(data_fim,"%d/%m/%Y").date()if data_fim else None
+     datainic = datetime.strptime(data_ini,"%d/%m/%Y").date()
+     Adcplyr(nome,datainic,data_fim,nacionalidade,posicao)
+    except Exception as e :
+        print (e)
+
+# Função para exibir a lista de jogadores
+
+def Mostrarjogadores():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("select id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao from jogadores")
+        jogadores = cur.fetchall()
+        for jogador in jogadores:
+            id_, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
+            data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
+            print(f"ID: {id_} | Nome: {nome} | Início: {data_inicio.strftime('%d/%m/%Y')} | Fim: {data_fim_str} | Nacionalidade: {nacionalidade} | Posição ID: {id_posicao}")
+        cur.close()
+    finally:
+        conexao.close()
+
+
+#cadastrarPosicoes()
+#("joseval","2025-07-22","brasileira",2)
+#Adicionarjogadores()
+Mostrarjogadores()
