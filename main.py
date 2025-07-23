@@ -8,5 +8,10 @@ def main():
     print("Oi")
     conectar()
     criar_tabelas()
+    cadastrarPosicoes()
 
 main()
+
+
+
+

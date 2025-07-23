@@ -120,6 +120,7 @@ SQL_CRIAR_TABELAS = """
 def conectar():
     try:
         conexao = psycopg2.connect(**DB_CONFIG)
+        CONEXAO = conexao
         return conexao
     except Exception as e:
         print(f"Erro ao conectar ao banco de dados: {e}")
@@ -136,6 +137,23 @@ def criar_tabelas():
     except Exception as e:
         print(f"Ocorreu um erro ao criar as tabelas: {e}")
 
+
+# AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
+
+def cadastrarPosicoes():
+    try:
+        conexao = conectar()
+        cur = conexao.cursor()
+
+        nomes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
+        for i in range(len(nomes)):
+            cur.execute(f"INSERT INTO posicoes(nome) VALUES({nomes[i]})")
+            conexao.commit()
+
+        cur.close()
+        conexao.close
+    except Exception as e:
+        print(e)
 
 
 
