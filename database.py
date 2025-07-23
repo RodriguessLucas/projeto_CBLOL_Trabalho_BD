@@ -156,8 +156,7 @@ def cadastrarPosicoes():
         print(e)
 
 
-# FUNCÃO QUE ADICIONA DIRETO AO BANDO DE DADOS SEM O INPUT DADOS DO 
-# Não passeia data 
+# FUNCÃO QUE ADICIONA DIRETO AO BANCO DE DADOS SEM O INPUT DADOS DO user 
 def Adcplyr(nome,inicio_carreira,fim_carreira,nacionalidade,id_posicao):
     conexao = conectar()
     cur = conexao.cursor()
@@ -175,15 +174,16 @@ def Adcplyr(nome,inicio_carreira,fim_carreira,nacionalidade,id_posicao):
 
 def Adicionarjogadores():
     try:
-     nome = input("Digite o nome: ")
-     data_ini = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ")
-     data_fim = input("Digite a data de fim da carreira (DD/MM/AAAA ou deixe em branco se ainda estiver ativo): ")
-     nacionalidade = input("Digite a nacionalidade: ")
-#logo logo adicionarei pelo nome da posicao e nao pelo id
-     posicao = input("Digite o ID da posicao: ")
+     nome = input("Digite o nome: ").strip()
+     data_ini = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ").strip()
+     data_fim = input("Digite a data de fim da carreira (DD/MM/AAAA ou deixe em branco se ainda estiver ativo): ").strip()
+     nacionalidade = input("Digite a nacionalidade: ").strip()
+     posicao = input("Digite o ID da posicao: ").strip()
      data_fim = datetime.strptime(data_fim,"%d/%m/%Y").date()if data_fim else None
      datainic = datetime.strptime(data_ini,"%d/%m/%Y").date()
      Adcplyr(nome,datainic,data_fim,nacionalidade,posicao)
+    except ValueError:
+        print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
     except Exception as e :
         print (e)
 
@@ -195,16 +195,130 @@ def Mostrarjogadores():
     try:
         cur.execute("select id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao from jogadores")
         jogadores = cur.fetchall()
+        print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
+        print("-" * 90)
         for jogador in jogadores:
-            id_, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
+            id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
             data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
-            print(f"ID: {id_} | Nome: {nome} | Início: {data_inicio.strftime('%d/%m/%Y')} | Fim: {data_fim_str} | Nacionalidade: {nacionalidade} | Posição ID: {id_posicao}")
-        cur.close()
+            print(f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}")
     finally:
+        cur.close()
+        conexao.close()
+
+#Funcao que remove jogadores 
+
+def Removerjogadores():
+    id_str = input("Digite o id do jogador que sera removido: ").strip()
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        id = int(id_str)
+        cur.execute("delete from jogadores where id =%s ",(id,))
+        conexao.commit()
+        if cur.rowcount > 0:
+             print ("Jogador removido com sucesso")
+        else:
+            print("\tID invalido!\n\tVeja os IDs validos na lista de jogadores") 
+    except ValueError:
+        print("ID digitado não é um número válido!")
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+        conexao.close()
+
+# Funcao de aposentar jogadores no futuro tera um trigger para encerrar io contrato assim q o joagdor se aposentar
+def Aposentarjogador():
+   conexao = conectar()
+   cur = conexao.cursor()
+   id = input("Digte o id do jogador: ").strip()
+   data_str = input("Digite a data de fim da carreira (DD/MM/AAAA ): ").strip()
+   
+   try:
+     data_fim = datetime.strptime(data_str, "%d/%m/%Y").date()
+     cur.execute("UPDATE jogadores SET data_fim_carreira = %s WHERE id = %s",(data_fim, int(id)) )
+     conexao.commit()
+   except ValueError:
+       print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
+   except Exception as e:
+    print(e)
+   finally:
+       cur.close()
+       conexao.close()
+
+# Funcao de atualizar contrato pode ser usada pra iniciar, terminar ou renovar um contrato
+def Atualizarcontrato():
+    conexao = conectar()
+    cur = conexao.cursor()
+    data_inicio_str = input("Data início (DD/MM/AAAA): ").strip()
+    data_fim_str = input("Data fim (DD/MM/AAAA) : ").strip()
+    id_time = int(input("ID do time: ").strip())
+    id_jogador = int(input("ID do jogador: ").strip())
+    data_inicio = datetime.strptime(data_inicio_str, "%d/%m/%Y").date()
+    data_fim = datetime.strptime(data_fim_str, "%d/%m/%Y").date()
+    try:
+        cur.execute(" INSERT INTO contratos (data_inicio, data_fim, id_time, id_jogador) VALUES (%s, %s, %s, %s)", (data_inicio, data_fim, id_time, id_jogador))
+        conexao.commit()
+        print("Contrato adicionado com sucesso!")
+    except Exception as e:
+        print("Erro ao adicionar contrato:", e)
+    finally:
+        cur.close()
+        conexao.close()
+
+# Funcao de adicionar um time
+def Adicionartime():
+    conexao = conectar()
+    cur = conexao.cursor()
+    nome = input("Nome do time: ").strip()
+    sigla = input("Sigla (3 caracteres): ").strip().upper()
+    data_fundacao_str = input("Data de fundação (DD/MM/AAAA): ").strip()
+    data_fundacao = datetime.strptime(data_fundacao_str, "%d/%m/%Y").date()
+    nacionalidade = input("Nacionalidade: ").strip()
+    if len(sigla) != 3:
+            print("Erro: A sigla deve ter exatamente 3 caracteres.")
+            return
+    try:
+        cur.execute("INSERT INTO times (nome, sigla, data_fundacao, nacionalidade) VALUES (%s, %s, %s, %s)", (nome, sigla, data_fundacao, nacionalidade))
+        conexao.commit()
+        print("Time adicionado com sucesso!.")
+    except ValueError:
+        print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
+    except Exception as e:
+        print("Erro ao adicionar time:", e)
+    finally:
+        cur.close()
+        conexao.close()
+
+# Funcao de exibir os times
+def Exibirtimes():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("SELECT id, nome, sigla, data_fundacao, nacionalidade FROM times ORDER BY id")
+        times = cur.fetchall()
+        if not times:
+            print("Nenhum time cadastrado.")
+            return
+        print(f"{'ID':<4} | {'Nome':<25} | {'Sigla':<5} | {'Fundação':<10} | {'Nacionalidade':<20}")
+        print("-" * 75)
+        for t in times:
+            id, nome, sigla, data_fundacao, nacionalidade = t
+            print(f"{id:<4} | {nome:<25} | {sigla:<5} | {data_fundacao.strftime('%d/%m/%Y'):<10} | {nacionalidade:<20}")
+    except Exception as e :
+        print(e)
+    finally:
+        cur.close()
         conexao.close()
 
 
-#cadastrarPosicoes()
-#("joseval","2025-07-22","brasileira",2)
-#Adicionarjogadores()
-Mostrarjogadores()
+  
+
+
+
+
+
+
+
+
+
