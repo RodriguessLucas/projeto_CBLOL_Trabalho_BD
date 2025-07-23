@@ -12,18 +12,18 @@ DB_CONFIG = {
 SQL_CRIAR_TABELAS = """
     CREATE TABLE IF NOT EXISTS posicoes(
         id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL
+        nome VARCHAR(100) NOT NULL UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS personagens(
         id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL
+        nome VARCHAR(100) NOT NULL UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS times(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
-        sigla VARCHAR(3) NOT NULL,
+        sigla VARCHAR(3) NOT NULL UNIQUE,
         data_fundacao DATE NOT NULL,
         nacionalidade VARCHAR(100) NOT NULL
     );
@@ -145,9 +145,12 @@ def cadastrarPosicoes():
         conexao = conectar()
         cur = conexao.cursor()
 
-        nomes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
-        for i in range(len(nomes)):
-            cur.execute(f"INSERT INTO posicoes(nome) VALUES({nomes[i]})")
+        lanes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
+        #comando sql
+        sql = "INSERT INTO posicoes(nome) VALUES(%s)"
+
+        for lane in lanes:
+            cur.execute(sql,(lane,))
             conexao.commit()
 
         cur.close()
