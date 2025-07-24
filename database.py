@@ -163,6 +163,8 @@ def verificarEntradaData(data)->bool:
     
 
 def converterDataPostgresParaString(data_obj: date) -> str:
+    if data_obj is None:
+        return "não definido"
     if not isinstance(data_obj, (date, datetime)):
         raise TypeError("A data não é válida.")    
     return data_obj.strftime('%d/%m/%Y')
@@ -196,10 +198,11 @@ def cadastrarPosicoes():
             cur.execute("INSERT INTO posicoes(nome) VALUES(%s)", (nome,))
             conexao.commit()
 
-        cur.close()
-        conexao.close
     except Exception as e:
         print(e)
+    finally:
+        cur.close()
+        conexao.close()
 
 
 # FUNCÃO QUE ADICIONA DIRETO AO BANCO DE DADOS SEM O INPUT DADOS DO user 
@@ -263,6 +266,38 @@ def listarTodosJogadores():
         conexao.close()
 
 
+def buscrUmJogador():
+    conexao = conectar()
+    cur = conexao.cursor()
+
+    try:
+        id_jogador = int(input("Digite o ID do jogador que busca: ").strip())
+
+        cur.execute(f"SELECT * FROM jogadores WHERE id = {id_jogador}")
+        jogador = cur.fetchone()
+        if(jogador[0] == None):
+            raise ValueError("Jogador não encontrado no banco de dados")
+        
+        cur.execute(f"SELECT nome FROM posicoes WHERE id = {jogador[5]}")
+        obterPosicao = cur.fetchone()
+        
+        mensagem = (f"Informações do jogador:\n" +
+                    "ID:{jogador[0]} \nNome: {jogador[1]} \nInicio da carreira: {jogador[2]} \nFim de carreira: {jogador[3]}"+
+                    "\nNacionalidade: {jogador[4]} \nPosição:{obterposicao[0]}"
+                    )
+        return mensagem  
+    except Exception as e:
+        print(e)
+
+    finally:
+        cur.close()
+        conexao.close()
+
+        
+
+
+
+
 #Funcao que remove jogadores 
 def Removerjogadores():
     id_str = input("Digite o id do jogador que sera removido: ").strip()
@@ -283,6 +318,8 @@ def Removerjogadores():
     finally:
         cur.close()
         conexao.close()
+
+
 
 
 
