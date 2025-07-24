@@ -293,10 +293,6 @@ def buscrUmJogador():
         cur.close()
         conexao.close()
 
-        
-
-
-
 
 #Funcao que remove jogadores 
 def Removerjogadores():
@@ -320,6 +316,112 @@ def Removerjogadores():
         conexao.close()
 
 
+def atualizarDadosJogador():
+    # Coleta de dados
+    id_jogador = input("Digite o ID do jogador: ").strip()
+    id_jogador = int(id_jogador) if id_jogador.isdigit() else None
+
+    print("Digite os dados atualizados \nCASO NÃO QUEIRA ATUALIZAR APENAS DEIXE VAZIO")
+
+    nome = input("Digite o novo nome: ").strip() or None
+    inicio_carreira = input("Digite a nova data que este jogador começou a atuar (DD/MM/AAAA): ").strip() or None
+    fim_carreira = input("Digite a nova data que este jogador se aposentou (DD/MM/AAAA): ").strip() or None
+    nacionalidade = input("Digite a nova nacionalidade: ").strip() or None
+    id_posicao = input("Digite o novo ID da posicao: ").strip()
+    id_posicao = int(id_posicao) if id_posicao.isdigit() else None
+
+    conexao = conectar()
+    cur = conexao.cursor()
+    
+    try:
+        # Verificações básicas
+        if id_jogador is None:
+            raise ValueError("ID do jogador inválido, insira o dado corretamente")
+
+        # Verifica se jogador existe
+        cur.execute("SELECT * FROM jogadores WHERE id = %s", (id_jogador,))
+        jogador = cur.fetchone()
+        if not jogador:
+            raise ValueError("Jogador não encontrado!")
+
+        # Validações dos dados
+        if nome is not None:
+            verificarNome(nome)
+        
+        if inicio_carreira is not None:
+            if verificarEntradaData(inicio_carreira):
+                inicio_carreira = converterStringParaData(inicio_carreira)
+            else:
+                inicio_carreira = None
+
+        if fim_carreira is not None:
+            if verificarEntradaData(fim_carreira):
+                fim_carreira = converterStringParaData(fim_carreira)
+            else:
+                fim_carreira = None
+
+        if nacionalidade is not None:
+            verificarEntradaNacionalidade(nacionalidade)
+
+        if id_posicao is not None:
+            cur.execute("SELECT * FROM posicoes WHERE id = %s", (id_posicao,))
+            obterPosicao = cur.fetchone()
+            if not obterPosicao:
+                raise ValueError("Posição usada para jogador é inválida!")
+            nome_posicao = obterPosicao[1]
+        else:
+            # Se não foi informada nova posição, obtém a atual
+            cur.execute("SELECT nome FROM posicoes WHERE id = %s", (jogador[5],))
+            nome_posicao = cur.fetchone()[0]
+
+        # Construção da query de atualização
+        campos = []
+        valores = []
+        
+        if nome is not None:
+            campos.append("nome = %s")
+            valores.append(nome)
+            
+        if inicio_carreira is not None:
+            campos.append("data_inicio_carreira = %s")
+            valores.append(inicio_carreira)
+            
+        if fim_carreira is not None:
+            campos.append("data_fim_carreira = %s")
+            valores.append(fim_carreira)
+            
+        if nacionalidade is not None:
+            campos.append("nacionalidade = %s")
+            valores.append(nacionalidade)
+            
+        if id_posicao is not None:
+            campos.append("id_posicao = %s")
+            valores.append(id_posicao)
+
+        
+        if campos:
+            valores.append(id_jogador)
+            query = f"UPDATE jogadores SET {', '.join(campos)} WHERE id = %s"
+            cur.execute(query, valores)
+            conexao.commit()
+            
+            # Obtém o nome do jogador atualizado (ou o antigo se não foi modificado)
+            nome_exibicao = nome if nome is not None else jogador[1]
+            nacionalidade_exibicao = nacionalidade if nacionalidade is not None else jogador[4]
+            
+            return (f"Jogador atualizado com sucesso!\n"
+                    f"Nome: {nome_exibicao}\n"
+                    f"Nacionalidade: {nacionalidade_exibicao}\n"
+                    f"Posição: {nome_posicao}")
+        else:
+            return "Nenhum dado foi alterado."
+            
+    except Exception as e:
+        conexao.rollback()
+        return f"Erro ao atualizar jogador: {str(e)}"
+    finally:
+        cur.close()
+        conexao.close()
 
 
 
