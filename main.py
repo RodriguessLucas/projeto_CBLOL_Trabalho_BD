@@ -10,6 +10,10 @@ def main():
     criar_tabelas()
     cadastrarPosicoes()
 
+
+    cadastrarJogador()
+
+
 main()
 
 

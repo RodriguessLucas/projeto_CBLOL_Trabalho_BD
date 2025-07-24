@@ -5,7 +5,7 @@ from datetime import datetime, date
 DB_CONFIG = {
     "dbname": "banco_cblol",
     "user": "postgres",
-    "password": "1234",
+    "password": "postgres2025",
     "host": "localhost",
     "port": "5432"
 }
@@ -152,7 +152,7 @@ def verificarNome(nome:str):
 
 
 def verificarEntradaData(data)->bool:
-    if not data or not isinstance(str):
+    if not data or not isinstance(data,str):
         return False
 
     try:
@@ -215,6 +215,7 @@ def cadastrarJogador():
     conexao = conectar()
     cur = conexao.cursor()
     try:    
+        id_posicao = int(id_posicao)
 
         verificarNome(nome)
         if(verificarEntradaData(inicio_carreira)):
@@ -222,22 +223,25 @@ def cadastrarJogador():
 
         verificarEntradaNacionalidade(nacionalidade)
 
-        cur.execute("SELECT * FROM posicoes WHERE id = {id_posicao});")
+        cur.execute(f"SELECT * FROM posicoes WHERE id = {id_posicao};")
         obterPosicao = cur.fetchone()
+        print(obterPosicao)
         if(obterPosicao[0] == None) :
             raise ValueError("Posicao usada para cadastrar jogador é inválida!")
         
         cur.execute(
             "insert into jogadores( nome, data_inicio_carreira, nacionalidade,id_posicao) values (%s,%s,%s,%s)", 
             ( nome,inicio_carreira, nacionalidade,id_posicao))  
-        cur.close()
+        conexao.commit()
 
         return f"Novo jogador adicionado! \nNome: {nome} - Nacionalidade: {nacionalidade} - Posição: {obterPosicao[1]} "
     
     except Exception as e :
         print(e)
     finally:  
-     conexao.close()
+        cur.close()
+        conexao.close()
+
 
 
 # FUNCAO PARA LISTAR TODOS OS JOGADORES CADASTRADOS 
