@@ -203,7 +203,12 @@ def cadastrarPosicoes():
 
 
 # FUNCÃO QUE ADICIONA DIRETO AO BANCO DE DADOS SEM O INPUT DADOS DO user 
-def cadastrarJogador(nome,inicio_carreira,nacionalidade,id_posicao):
+def cadastrarJogador():
+    nome = input("Digite o nome: ").strip()
+    inicio_carreira = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ").strip()
+    nacionalidade = input("Digite a nacionalidade: ").strip()
+    id_posicao = input("Digite o ID da posicao: ").strip()
+    
     conexao = conectar()
     cur = conexao.cursor()
     try:    
@@ -232,23 +237,7 @@ def cadastrarJogador(nome,inicio_carreira,nacionalidade,id_posicao):
      conexao.close()
 
 
-#Adiciona um jogador com input de dados do user
-def Adicionarjogadores(nome,):
-    try:
-     nome = input("Digite o nome: ").strip()
-     data_ini = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ").strip()
-     data_fim = input("Digite a data de fim da carreira (DD/MM/AAAA ou deixe em branco se ainda estiver ativo): ").strip()
-     nacionalidade = input("Digite a nacionalidade: ").strip()
-     posicao = input("Digite o ID da posicao: ").strip()
-     data_fim = datetime.strptime(data_fim,"%d/%m/%Y").date()if data_fim else None
-     datainic = datetime.strptime(data_ini,"%d/%m/%Y").date()
-     Adcplyr(nome,datainic,data_fim,nacionalidade,posicao)
-    except ValueError:
-        print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
-    except Exception as e :
-        print (e)
-
-# Função para exibir a lista de jogadores
+# FUNCAO PARA LISTAR TODOS OS JOGADORES CADASTRADOS 
 def listarTodosJogadores():
     conexao = conectar()
     cur = conexao.cursor()
@@ -259,12 +248,16 @@ def listarTodosJogadores():
         if not jogadores:
             return "Não há jogadores cadastrados no sistema!"
 
-        # print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
-        # print("-" * 90)
+        resultado = f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}\n"
+        resultado += "-" * 90 + "\n"
+        
         for jogador in jogadores:
             id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
             data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
-            print(f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}")
+            resultado += f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}\n"
+        
+        return resultado
+    
     finally:
         cur.close()
         conexao.close()
@@ -276,8 +269,8 @@ def Removerjogadores():
     conexao = conectar()
     cur = conexao.cursor()
     try:
-        id = int(id_str)
-        cur.execute("delete from jogadores where id =%s ",(id,))
+        auxId= int(id_str)
+        cur.execute("delete from jogadores where id =%s ",(auxId,))
         conexao.commit()
         if cur.rowcount > 0:
              print ("Jogador removido com sucesso")
@@ -290,6 +283,11 @@ def Removerjogadores():
     finally:
         cur.close()
         conexao.close()
+
+
+
+
+
 
 # Funcao de aposentar jogadores no futuro tera um trigger para encerrar io contrato assim q o joagdor se aposentar
 def Aposentarjogador():
