@@ -1,5 +1,7 @@
 import psycopg2
-from datetime import datetime
+from datetime import datetime, date
+
+
 DB_CONFIG = {
     "dbname": "banco_cblol",
     "user": "postgres",
@@ -138,8 +140,52 @@ def criar_tabelas():
         print(f"Ocorreu um erro ao criar as tabelas: {e}")
 
 
+
+
+# FUNÇÕES AUXILIARES PARA VERIFICAR ENTRADAS E CONVERTER PARA O PADRAO DO POSTGRES
+def verificarNome(nome:str):
+    if not nome or not isinstance(nome,str):
+        return False
+    
+    verificar = nome.replace(' ','').replace('-','').replace("'","")
+    return verificar.isalnum()
+
+
+def verificarEntradaData(data)->bool:
+    if not data or not isinstance(str):
+        return False
+
+    try:
+        datetime.strptime(data, '%d/%m/%Y')
+        return True
+    except ValueError:
+        return False
+    
+
+def converterDataPostgresParaString(data_obj: date) -> str:
+    if not isinstance(data_obj, (date, datetime)):
+        raise TypeError("A data não é válida.")    
+    return data_obj.strftime('%d/%m/%Y')
+    
+
+def converterStringParaData(data_str: str) -> date | None:
+    try:
+        return datetime.strptime(data_str, '%d/%m/%Y').date()
+    except (ValueError, TypeError):
+        return None
+
+def verificarEntradaNacionalidade(nacionalidade):
+    if not nacionalidade or not isinstance(nacionalidade,str):
+        return False
+    
+    verificar = nacionalidade.replace(' ','').replace('-','').replace("'","")
+    return verificar.isalnum()
+
+
+
 # AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
 # Fiz uma alteracao no loop de criar posicoes pq não estava funcionando 
+
 def cadastrarPosicoes():
     try:
         conexao = conectar()
@@ -157,22 +203,37 @@ def cadastrarPosicoes():
 
 
 # FUNCÃO QUE ADICIONA DIRETO AO BANCO DE DADOS SEM O INPUT DADOS DO user 
-def Adcplyr(nome,inicio_carreira,fim_carreira,nacionalidade,id_posicao):
+def cadastrarJogador(nome,inicio_carreira,nacionalidade,id_posicao):
     conexao = conectar()
     cur = conexao.cursor()
-    try:
-        cur.execute("insert into jogadores( nome, data_inicio_carreira,data_fim_carreira, nacionalidade,id_posicao) values (%s,%s,%s,%s,%s)", ( nome,inicio_carreira,fim_carreira, nacionalidade,id_posicao))
-        conexao.commit()
+    try:    
+
+        verificarNome(nome)
+        if(verificarEntradaData(inicio_carreira)):
+            inicio_carreira = converterStringParaData(inicio_carreira)
+
+        verificarEntradaNacionalidade(nacionalidade)
+
+        cur.execute("SELECT * FROM posicoes WHERE id = {id_posicao});")
+        obterPosicao = cur.fetchone()
+        if(obterPosicao[0] == None) :
+            raise ValueError("Posicao usada para cadastrar jogador é inválida!")
+        
+        cur.execute(
+            "insert into jogadores( nome, data_inicio_carreira, nacionalidade,id_posicao) values (%s,%s,%s,%s)", 
+            ( nome,inicio_carreira, nacionalidade,id_posicao))  
         cur.close()
-        print("jogador adicionado")
+
+        return f"Novo jogador adicionado! \nNome: {nome} - Nacionalidade: {nacionalidade} - Posição: {obterPosicao[1]} "
+    
     except Exception as e :
         print(e)
     finally:  
      conexao.close()
 
-#Adiciona um jogador com input de dados do user
 
-def Adicionarjogadores():
+#Adiciona um jogador com input de dados do user
+def Adicionarjogadores(nome,):
     try:
      nome = input("Digite o nome: ").strip()
      data_ini = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ").strip()
@@ -188,15 +249,18 @@ def Adicionarjogadores():
         print (e)
 
 # Função para exibir a lista de jogadores
-
-def Mostrarjogadores():
+def listarTodosJogadores():
     conexao = conectar()
     cur = conexao.cursor()
     try:
-        cur.execute("select id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao from jogadores")
+        cur.execute("SELECT id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao FROM jogadores")
         jogadores = cur.fetchall()
-        print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
-        print("-" * 90)
+        
+        if not jogadores:
+            return "Não há jogadores cadastrados no sistema!"
+
+        # print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
+        # print("-" * 90)
         for jogador in jogadores:
             id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
             data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
@@ -205,8 +269,8 @@ def Mostrarjogadores():
         cur.close()
         conexao.close()
 
-#Funcao que remove jogadores 
 
+#Funcao que remove jogadores 
 def Removerjogadores():
     id_str = input("Digite o id do jogador que sera removido: ").strip()
     conexao = conectar()
