@@ -600,9 +600,7 @@ def Exibirtimes():
         cur.close()
         conexao.close()
 
-Gerarpartida() 
 
-Exibirpartida()
 
 
 
