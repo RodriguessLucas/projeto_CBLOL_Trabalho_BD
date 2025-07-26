@@ -242,22 +242,6 @@ def cadastrarJogador():
         cur.close()
         conexao.close()
 
-def Mostrarjogadores():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute("select id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao from jogadores ORDER by id")
-        jogadores = cur.fetchall()
-        print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
-        print("-" * 90)
-        for jogador in jogadores:
-            id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
-            data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
-            print(f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}")
-    finally:
-        cur.close()
-        conexao.close()
-
 # FUNCAO PARA LISTAR TODOS OS JOGADORES CADASTRADOS 
 def listarTodosJogadores():
     conexao = conectar()
