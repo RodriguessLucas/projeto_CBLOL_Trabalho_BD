@@ -184,7 +184,6 @@ def verificarEntradaNacionalidade(nacionalidade):
     return verificar.isalnum()
 
 
-
 # AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
 # Fiz uma alteracao no loop de criar posicoes pq não estava funcionando 
 
@@ -428,16 +427,15 @@ def atualizarDadosJogador():
         conexao.close()
 
 
-
-
-
-
 # Funcao de aposentar jogadores no futuro tera um trigger para encerrar io contrato assim q o joagdor se aposentar
 def Aposentarjogador():
    conexao = conectar()
    cur = conexao.cursor()
    id = input("Digte o id do jogador: ").strip()
    data_str = input("Digite a data de fim da carreira (DD/MM/AAAA ): ").strip()
+
+   # AQUI TEM Q QUE ADICIOAR TBM PARA QUANDO O JOGADOR APOSENTAR, ADCIONAR EM CONTRATOS O FIM DELE TNM 
+   # COM A DATA QUE ELE SE APOSENTOI-SE
    
    try:
      data_fim = datetime.strptime(data_str, "%d/%m/%Y").date()
