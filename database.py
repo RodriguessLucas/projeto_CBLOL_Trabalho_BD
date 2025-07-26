@@ -1,27 +1,23 @@
+# database.py
 import psycopg2
-from datetime import datetime, date
-
 
 DB_CONFIG = {
     "dbname": "banco_cblol",
     "user": "postgres",
-    "password": "1234",
+    "password": "postgres2025",
     "host": "localhost",
     "port": "5432"
 }
-
 
 SQL_CRIAR_TABELAS = """
     CREATE TABLE IF NOT EXISTS posicoes(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS personagens(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS times(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
@@ -29,7 +25,6 @@ SQL_CRIAR_TABELAS = """
         data_fundacao DATE NOT NULL,
         nacionalidade VARCHAR(100) NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS campeonatos(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(150) NOT NULL,
@@ -37,7 +32,6 @@ SQL_CRIAR_TABELAS = """
         pais_ocorrencia VARCHAR(100) NOT NULL,
         split CHAR(1) NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS jogadores(
         id SERIAL PRIMARY KEY,
         nome VARCHAR(150) NOT NULL,
@@ -45,29 +39,17 @@ SQL_CRIAR_TABELAS = """
         data_fim_carreira DATE,
         nacionalidade VARCHAR(100) NOT NULL,
         id_posicao INTEGER NOT NULL,
-
-        CONSTRAINT fk_id_posicao_jogador
-            FOREIGN KEY (id_posicao)
-            REFERENCES posicoes(id)
-
+        CONSTRAINT fk_id_posicao_jogador FOREIGN KEY (id_posicao) REFERENCES posicoes(id)
     );
-
     CREATE TABLE IF NOT EXISTS contratos(
         id SERIAL PRIMARY KEY,
         data_inicio DATE NOT NULL,
         data_fim DATE,
         id_time INTEGER NOT NULL,
         id_jogador INTEGER NOT NULL,
-
-        CONSTRAINT fk_id_time_contrato_jogador
-            FOREIGN KEY (id_time)
-            REFERENCES times(id),
-
-        CONSTRAINT fk_id_jogador_contrato
-            FOREIGN KEY (id_jogador)
-            REFERENCES jogadores(id)
+        CONSTRAINT fk_id_time_contrato_jogador FOREIGN KEY (id_time) REFERENCES times(id),
+        CONSTRAINT fk_id_jogador_contrato FOREIGN KEY (id_jogador) REFERENCES jogadores(id)
     );
-
     CREATE TABLE IF NOT EXISTS partidas(
         id SERIAL PRIMARY KEY,
         duracao_partida CHAR(8) NOT NULL,
@@ -75,20 +57,10 @@ SQL_CRIAR_TABELAS = """
         id_time1 INTEGER NOT NULL,
         id_time2 INTEGER NOT NULL,
         id_time_vencedor INTEGER NOT NULL,
-
-        CONSTRAINT fk_id_campeonato_partida
-            FOREIGN KEY (id_campeonato)
-            REFERENCES campeonatos(id),
-
-        CONSTRAINT fk_id_time1_partida
-            FOREIGN KEY (id_time1)
-            REFERENCES times(id),
-
-        CONSTRAINT fk_id_time2_partida
-            FOREIGN KEY (id_time2)
-            REFERENCES times(id)
+        CONSTRAINT fk_id_campeonato_partida FOREIGN KEY (id_campeonato) REFERENCES campeonatos(id),
+        CONSTRAINT fk_id_time1_partida FOREIGN KEY (id_time1) REFERENCES times(id),
+        CONSTRAINT fk_id_time2_partida FOREIGN KEY (id_time2) REFERENCES times(id)
     );
-
     CREATE TABLE IF NOT EXISTS estatisticas(
         id SERIAL PRIMARY KEY,
         qntd_abates INTEGER NOT NULL,
@@ -99,37 +71,23 @@ SQL_CRIAR_TABELAS = """
         id_jogador INTEGER NOT NULL,
         id_posicao INTEGER NOT NULL,
         id_personagem INTEGER NOT NULL,
-
-        CONSTRAINT fk_id_partida_estatistica
-            FOREIGN KEY(id_partida)
-            REFERENCES partidas(id),
-
-        CONSTRAINT fk_id_jogador_estatistica
-            FOREIGN KEY (id_jogador)
-            REFERENCES jogadores(id),
-        
-        CONSTRAINT fk_id_posicao_estatistica
-            FOREIGN KEY (id_posicao)
-            REFERENCES posicoes(id),
-
-        CONSTRAINT fk_id_personagem_estatistica
-            FOREIGN KEY( id_personagem)
-            REFERENCES personagens(id)
+        CONSTRAINT fk_id_partida_estatistica FOREIGN KEY(id_partida) REFERENCES partidas(id),
+        CONSTRAINT fk_id_jogador_estatistica FOREIGN KEY (id_jogador) REFERENCES jogadores(id),
+        CONSTRAINT fk_id_posicao_estatistica FOREIGN KEY (id_posicao) REFERENCES posicoes(id),
+        CONSTRAINT fk_id_personagem_estatistica FOREIGN KEY( id_personagem) REFERENCES personagens(id)
     );
-
 """
 
 def conectar():
+    """Cria e retorna uma conexão com o banco de dados."""
     try:
-        conexao = psycopg2.connect(**DB_CONFIG)
-        CONEXAO = conexao
-        return conexao
+        return psycopg2.connect(**DB_CONFIG)
     except Exception as e:
         print(f"Erro ao conectar ao banco de dados: {e}")
         return None
-    
 
 def criar_tabelas():
+    """Executa o script de criação de tabelas."""
     print("Verificando e criando tabelas...")
     try:
         with conectar() as conn:
@@ -139,635 +97,15 @@ def criar_tabelas():
     except Exception as e:
         print(f"Ocorreu um erro ao criar as tabelas: {e}")
 
-
-
-
-# FUNÇÕES AUXILIARES PARA VERIFICAR ENTRADAS E CONVERTER PARA O PADRAO DO POSTGRES
-def verificarNome(nome:str):
-    if not nome or not isinstance(nome,str):
-        return False
-    
-    verificar = nome.replace(' ','').replace('-','').replace("'","")
-    return verificar.isalnum()
-
-
-def verificarEntradaData(data)->bool:
-    if not data or not isinstance(data,str):
-        return False
-
+def cadastrar_posicoes_iniciais():
+    """Cadastra as posições padrão do jogo, se não existirem."""
     try:
-        datetime.strptime(data, '%d/%m/%Y')
-        return True
-    except ValueError:
-        return False
-    
-
-def converterDataPostgresParaString(data_obj: date) -> str:
-    if data_obj is None:
-        return "não definido"
-    if not isinstance(data_obj, (date, datetime)):
-        raise TypeError("A data não é válida.")    
-    return data_obj.strftime('%d/%m/%Y')
-    
-
-def converterStringParaData(data_str: str) -> date | None:
-    try:
-        return datetime.strptime(data_str, '%d/%m/%Y').date()
-    except (ValueError, TypeError):
-        return None
-
-def verificarEntradaNacionalidade(nacionalidade):
-    if not nacionalidade or not isinstance(nacionalidade,str):
-        return False
-    
-    verificar = nacionalidade.replace(' ','').replace('-','').replace("'","")
-    return verificar.isalnum()
-
-
-
-# AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
-# Fiz uma alteracao no loop de criar posicoes pq não estava funcionando 
-
-def cadastrarPosicoes():
-    try:
-        conexao = conectar()
-        cur = conexao.cursor()
-
-        nomes= ["TOPO","MEIO","CAÇADOR","ATIRADOR","SUPORTE"]
-        for nome in nomes:
-            cur.execute("INSERT INTO posicoes(nome) VALUES(%s)", (nome,))
-            conexao.commit()
-
+        with conectar() as conn:
+            with conn.cursor() as cur:
+                nomes = ["TOPO", "MEIO", "CAÇADOR", "ATIRADOR", "SUPORTE"]
+                for nome in nomes:
+                    cur.execute("SELECT id FROM posicoes WHERE nome = %s", (nome,))
+                    if cur.fetchone() is None:
+                        cur.execute("INSERT INTO posicoes(nome) VALUES(%s)", (nome,))
     except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-        conexao.close()
-
-
-# FUNCÃO QUE ADICIONA DIRETO AO BANCO DE DADOS SEM O INPUT DADOS DO user 
-def cadastrarJogador():
-    nome = input("Digite o nome: ").strip()
-    inicio_carreira = input("Digite a data que este jogador começou a atuar (DD/MM/AAAA): ").strip()
-    nacionalidade = input("Digite a nacionalidade: ").strip()
-    id_posicao = input("Digite o ID da posicao: ").strip()
-    
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:    
-        id_posicao = int(id_posicao)
-
-        verificarNome(nome)
-        if(verificarEntradaData(inicio_carreira)):
-            inicio_carreira = converterStringParaData(inicio_carreira)
-
-        verificarEntradaNacionalidade(nacionalidade)
-
-        cur.execute(f"SELECT * FROM posicoes WHERE id = {id_posicao};")
-        obterPosicao = cur.fetchone()
-        print(obterPosicao)
-        if(obterPosicao[0] == None) :
-            raise ValueError("Posicao usada para cadastrar jogador é inválida!")
-        
-        cur.execute(
-            "insert into jogadores( nome, data_inicio_carreira, nacionalidade,id_posicao) values (%s,%s,%s,%s)", 
-            ( nome,inicio_carreira, nacionalidade,id_posicao))  
-        conexao.commit()
-
-        return f"Novo jogador adicionado! \nNome: {nome} - Nacionalidade: {nacionalidade} - Posição: {obterPosicao[1]} "
-    
-    except Exception as e :
-        print(e)
-    finally:  
-        cur.close()
-        conexao.close()
-
-# FUNCAO PARA LISTAR TODOS OS JOGADORES CADASTRADOS 
-def listarTodosJogadores():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute("SELECT id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao FROM jogadores")
-        jogadores = cur.fetchall()
-        
-        if not jogadores:
-            return "Não há jogadores cadastrados no sistema!"
-
-        resultado = f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}\n"
-        resultado += "-" * 90 + "\n"
-        
-        for jogador in jogadores:
-            id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
-            data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
-            resultado += f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}\n"
-        
-        return resultado
-    
-    finally:
-        cur.close()
-        conexao.close()
-
-
-def buscrUmJogador():
-    conexao = conectar()
-    cur = conexao.cursor()
-
-    try:
-        id_jogador = int(input("Digite o ID do jogador que busca: ").strip())
-
-        cur.execute(f"SELECT * FROM jogadores WHERE id = {id_jogador}")
-        jogador = cur.fetchone()
-        if(jogador[0] == None):
-            raise ValueError("Jogador não encontrado no banco de dados")
-        
-        cur.execute(f"SELECT nome FROM posicoes WHERE id = {jogador[5]}")
-        obterPosicao = cur.fetchone()
-        
-        mensagem = (f"Informações do jogador:\n" +
-                    "ID:{jogador[0]} \nNome: {jogador[1]} \nInicio da carreira: {jogador[2]} \nFim de carreira: {jogador[3]}"+
-                    "\nNacionalidade: {jogador[4]} \nPosição:{obterposicao[0]}"
-                    )
-        return mensagem  
-    except Exception as e:
-        print(e)
-
-    finally:
-        cur.close()
-        conexao.close()
-
-
-#Funcao que remove jogadores 
-def Removerjogadores():
-    id_str = input("Digite o id do jogador que sera removido: ").strip()
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        auxId= int(id_str)
-        cur.execute("delete from jogadores where id =%s ",(auxId,))
-        conexao.commit()
-        if cur.rowcount > 0:
-             print ("Jogador removido com sucesso")
-        else:
-            print("\tID invalido!\n\tVeja os IDs validos na lista de jogadores") 
-    except ValueError:
-        print("ID digitado não é um número válido!")
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-        conexao.close()
-
-
-def atualizarDadosJogador():
-    # Coleta de dados
-    id_jogador = input("Digite o ID do jogador: ").strip()
-    id_jogador = int(id_jogador) if id_jogador.isdigit() else None
-
-    print("Digite os dados atualizados \nCASO NÃO QUEIRA ATUALIZAR APENAS DEIXE VAZIO")
-
-    nome = input("Digite o novo nome: ").strip() or None
-    inicio_carreira = input("Digite a nova data que este jogador começou a atuar (DD/MM/AAAA): ").strip() or None
-    fim_carreira = input("Digite a nova data que este jogador se aposentou (DD/MM/AAAA): ").strip() or None
-    nacionalidade = input("Digite a nova nacionalidade: ").strip() or None
-    id_posicao = input("Digite o novo ID da posicao: ").strip()
-    id_posicao = int(id_posicao) if id_posicao.isdigit() else None
-
-    conexao = conectar()
-    cur = conexao.cursor()
-    
-    try:
-        # Verificações básicas
-        if id_jogador is None:
-            raise ValueError("ID do jogador inválido, insira o dado corretamente")
-
-        # Verifica se jogador existe
-        cur.execute("SELECT * FROM jogadores WHERE id = %s", (id_jogador,))
-        jogador = cur.fetchone()
-        if not jogador:
-            raise ValueError("Jogador não encontrado!")
-
-        # Validações dos dados
-        if nome is not None:
-            verificarNome(nome)
-        
-        if inicio_carreira is not None:
-            if verificarEntradaData(inicio_carreira):
-                inicio_carreira = converterStringParaData(inicio_carreira)
-            else:
-                inicio_carreira = None
-
-        if fim_carreira is not None:
-            if verificarEntradaData(fim_carreira):
-                fim_carreira = converterStringParaData(fim_carreira)
-            else:
-                fim_carreira = None
-
-        if nacionalidade is not None:
-            verificarEntradaNacionalidade(nacionalidade)
-
-        if id_posicao is not None:
-            cur.execute("SELECT * FROM posicoes WHERE id = %s", (id_posicao,))
-            obterPosicao = cur.fetchone()
-            if not obterPosicao:
-                raise ValueError("Posição usada para jogador é inválida!")
-            nome_posicao = obterPosicao[1]
-        else:
-            # Se não foi informada nova posição, obtém a atual
-            cur.execute("SELECT nome FROM posicoes WHERE id = %s", (jogador[5],))
-            nome_posicao = cur.fetchone()[0]
-
-        # Construção da query de atualização
-        campos = []
-        valores = []
-        
-        if nome is not None:
-            campos.append("nome = %s")
-            valores.append(nome)
-            
-        if inicio_carreira is not None:
-            campos.append("data_inicio_carreira = %s")
-            valores.append(inicio_carreira)
-            
-        if fim_carreira is not None:
-            campos.append("data_fim_carreira = %s")
-            valores.append(fim_carreira)
-            
-        if nacionalidade is not None:
-            campos.append("nacionalidade = %s")
-            valores.append(nacionalidade)
-            
-        if id_posicao is not None:
-            campos.append("id_posicao = %s")
-            valores.append(id_posicao)
-
-        
-        if campos:
-            valores.append(id_jogador)
-            query = f"UPDATE jogadores SET {', '.join(campos)} WHERE id = %s"
-            cur.execute(query, valores)
-            conexao.commit()
-            
-            # Obtém o nome do jogador atualizado (ou o antigo se não foi modificado)
-            nome_exibicao = nome if nome is not None else jogador[1]
-            nacionalidade_exibicao = nacionalidade if nacionalidade is not None else jogador[4]
-            
-            return (f"Jogador atualizado com sucesso!\n"
-                    f"Nome: {nome_exibicao}\n"
-                    f"Nacionalidade: {nacionalidade_exibicao}\n"
-                    f"Posição: {nome_posicao}")
-        else:
-            return "Nenhum dado foi alterado."
-            
-    except Exception as e:
-        conexao.rollback()
-        return f"Erro ao atualizar jogador: {str(e)}"
-    finally:
-        cur.close()
-        conexao.close()
-
-# Funcao de exibir as partidas
-def Exibirpartida():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try: 
-        cur.execute('''SELECT 
-                p.id,
-                p.duracao_partida,
-                c.nome AS nome_campeonato,
-                t1.nome AS nome_time1,
-                t2.nome AS nome_time2,
-                tv.nome AS nome_vencedor
-            from partidas p
-            join campeonatos c on p.id_campeonato = c.id
-            join times t1 on p.id_time1 = t1.id
-            join times t2 on p.id_time2 = t2.id
-            join times tv on p.id_time_vencedor = tv.id''')
-        partidas = cur.fetchall()
-        print(f"{'ID':<4} | {'Duração':<10} | {'Campeonato':<20} | {'Time 1':<15} | {'Time 2':<15} | {'Vencedor':<15}")
-        print("-" * 95)
-        for partida in partidas:
-            id, duracao, nome_campeonato, nome_time1, nome_time2, nome_vencedor = partida
-            print(f"{id:<4} | {duracao:<10} | {nome_campeonato:<20} | {nome_time1:<15} | {nome_time2:<15} | {nome_vencedor:<15}")
-    except Exception as  e:
-        print("Erro ao exibir partidas:", e)
-    finally:
-        cur.close()
-        conexao.close()
-        
-def Inserirpartida():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        # Mostra os times cadastrados
-        cur.execute("SELECT id, nome FROM times")
-        times = cur.fetchall()
-        print("\n--- TIMES DISPONÍVEIS ---")
-        for t in times:
-            print(f"{t[0]} - {t[1]}")
-        id_time1 = int(input("\nDigite o ID do Time 1: "))
-        # Verificar se os ids nao sao iguais
-        while True:
-            id_time2 = int(input("Digite o ID do Time 2 (diferente do Time 1): "))
-            if id_time2 != id_time1:
-                break
-            print("Time 2 não pode ser igual ao Time 1")
-        # Nao deixa o id ser diferente do ids presentes na partida
-        while True:
-            id_vencedor = int(input("Digite o ID do time vencedor: "))
-            if id_vencedor in [id_time1, id_time2]:
-                break
-            print("O vencedor deve ser um dos dois times da partida")
-        # Procura o campeonato mais recente na tabela para inserir as partidas
-        cur.execute("SELECT id, nome FROM campeonatos ORDER BY id DESC LIMIT 1")
-        ultimo_campeonato = cur.fetchone()# Esse comando retorna apenas uma linha como uma tupla
-        if not ultimo_campeonato:
-            print(" Nenhum campeonato encontrado! ")
-            return
-        id_campeonato = ultimo_campeonato[0]
-        nome_campeonato = ultimo_campeonato[1]
-        print(f"\n A partida será registrada no campeonato mais recente: {nome_campeonato} (ID {id_campeonato})")
-        duracao = input("Digite a duração da partida (formato HH:MM:SS): ")  
-        cur.execute("insert into partidas (duracao_partida, id_campeonato, id_time1, id_time2, id_time_vencedor) values (%s, %s, %s, %s, %s)",(duracao, id_campeonato, id_time1, id_time2, id_vencedor))
-        conexao.commit()
-        print("Partida inserida com sucesso ")
-    except Exception as e :
-        print(e)
-    finally:
-        cur.close()
-        conexao.close()
-# Funcao para inserir campeonato
-def Inserircampeonato():
-    conexao = conectar()
-    cur = conexao.cursor()
-    nome = input("Digite o nome do campeonato: ")
-    ano = input("Digite o ano: ")
-    pais = input("Digite o pais em que o campeonato sera realizado: ")
-    split = input("Digite o split do campeoanto: ")
-    try:
-        cur.execute("insert into campeonatos (nome, ano, pais_ocorrencia, split) values(%s,%s,%s,%s)",(nome,ano,pais,split))
-        conexao.commit()
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-        conexao.close()
-
-
-
-# Funcao de aposentar jogadores no futuro tera um trigger para encerrar o contrato assim q o joagdor se aposentar
-def Aposentarjogador():
-   conexao = conectar()
-   cur = conexao.cursor()
-   id = input("Digte o id do jogador: ").strip()
-   data_str = input("Digite a data de fim da carreira (DD/MM/AAAA ): ").strip()
-   
-   try:
-     data_fim = datetime.strptime(data_str, "%d/%m/%Y").date()
-     cur.execute("UPDATE jogadores SET data_fim_carreira = %s WHERE id = %s",(data_fim, int(id)) )
-     conexao.commit()
-   except ValueError:
-       print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
-   except Exception as e:
-    print(e)
-   finally:
-       cur.close()
-       conexao.close()
-
-# Funcao de atualizar contrato pode ser usada pra iniciar, terminar ou renovar um contrato
-def Atualizarcontrato():
-    conexao = conectar()
-    cur = conexao.cursor()
-    data_inicio_str = input("Data início (DD/MM/AAAA): ").strip()
-    data_fim_str = input("Data fim (DD/MM/AAAA) : ").strip()
-    id_time = int(input("ID do time: ").strip())
-    id_jogador = int(input("ID do jogador: ").strip())
-    data_inicio = datetime.strptime(data_inicio_str, "%d/%m/%Y").date()
-    data_fim = datetime.strptime(data_fim_str, "%d/%m/%Y").date()
-    try:
-        cur.execute(" INSERT INTO contratos (data_inicio, data_fim, id_time, id_jogador) VALUES (%s, %s, %s, %s)", (data_inicio, data_fim, id_time, id_jogador))
-        conexao.commit()
-        print("Contrato adicionado com sucesso!")
-    except Exception as e:
-        print("Erro ao adicionar contrato:", e)
-    finally:
-        cur.close()
-        conexao.close()
-
-# Funcao de adicionar um time
-def Adicionartime():
-    conexao = conectar()
-    cur = conexao.cursor()
-    nome = input("Nome do time: ").strip()
-    sigla = input("Sigla (3 caracteres): ").strip().upper()
-    data_fundacao_str = input("Data de fundação (DD/MM/AAAA): ").strip()
-    data_fundacao = datetime.strptime(data_fundacao_str, "%d/%m/%Y").date()
-    nacionalidade = input("Nacionalidade: ").strip()
-    if len(sigla) != 3:
-            print("Erro: A sigla deve ter exatamente 3 caracteres.")
-            return
-    try:
-        cur.execute("INSERT INTO times (nome, sigla, data_fundacao, nacionalidade) VALUES (%s, %s, %s, %s)", (nome, sigla, data_fundacao, nacionalidade))
-        conexao.commit()
-        print("Time adicionado com sucesso!.")
-    except ValueError:
-        print("Erro: Data inválida. Use o formato DD/MM/AAAA.")
-    except Exception as e:
-        print("Erro ao adicionar time:", e)
-    finally:
-        cur.close()
-        conexao.close()
-
-# Funcao de exibir os times
-def Exibirtimes():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute("SELECT id, nome, sigla, data_fundacao, nacionalidade FROM times ORDER BY id")
-        times = cur.fetchall()
-        if not times:
-            print("Nenhum time cadastrado.")
-            return
-        print(f"{'ID':<4} | {'Nome':<25} | {'Sigla':<5} | {'Fundação':<10} | {'Nacionalidade':<20}")
-        print("-" * 75)
-        for t in times:
-            id, nome, sigla, data_fundacao, nacionalidade = t
-            print(f"{id:<4} | {nome:<25} | {sigla:<5} | {data_fundacao.strftime('%d/%m/%Y'):<10} | {nacionalidade:<20}")
-    except Exception as e :
-        print(e)
-    finally:
-        cur.close()
-        conexao.close()
-# funcao para listar as partidoas por ano
-def listarPartidasPorAno():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute('''
-            select 
-                p.id,
-                p.duracao_partida,
-                c.nome,
-                c.ano,
-                t1.nome,
-                t2.nome,
-                tv.nome
-            from partidas p
-            join campeonatos c on p.id_campeonato = c.id
-            join times t1 on p.id_time1 = t1.id
-            join times t2 on p.id_time2 = t2.id
-            join times tv on p.id_time_vencedor = tv.id
-            order by c.ano, p.id;
-        ''')
-        partidas = cur.fetchall()
-
-        print(f"{'ID':<4} | {'Ano':<5} | {'Duração':<10} | {'Campeonato':<20} | {'Time 1':<15} | {'Time 2':<15} | {'Vencedor':<15}")
-        print("-" * 100)
-        for partida in partidas:
-            id, duracao, campeonato, ano, time1, time2, vencedor = partida
-            print(f"{id:<4} | {ano:<5} | {duracao:<10} | {campeonato:<20} | {time1:<15} | {time2:<15} | {vencedor:<15}")
-    except Exception as e:
-        print("Erro ao listar partidas:", e)
-    finally:
-        cur.close()
-        conexao.close()
-
-# funcao para mostrar as estatisticas da partida
-def Estatisticasdapartida():
-    conexao = conectar()
-    cur = conexao.cursor()
-    id_partidainp = input("Digite o id da partida: ")
-    try:
-        cur.execute('''select 
-     e.id as id_estatistica,
-     j.nome as jogador,
-     p.nome as personagem,
-     pos.nome as posicao,
-     t.nome as time,
-     e.lado_mapa,
-     e.qntd_abates,
-     e.qntd_mortes,
-     e.qntd_assistencias,
-     pr.duracao_partida,
-     c.nome as campeonato
-     from estatisticas e
-     join jogadores j on e.id_jogador = j.id
-     join personagens p on e.id_personagem = p.id
-     join posicoes pos on e.id_posicao = pos.id
-     join partidas pr on e.id_partida = pr.id
-     join campeonatos c on pr.id_campeonato = c.id
-     join contratos ct on ct.id_jogador = j.id
-     join times t on ct.id_time = t.id
-     where e.id_partida = %s
-     order by e.id;
-     ''',(id_partidainp,))
-        resultados = cur.fetchall()
-        print("\n--- Estatísticas da Partida ---")
-        for i in resultados :
-            print(f'''
-                 ID Estatística: {i[0]}
-                 Jogador:        {i[1]}
-                 Personagem:     {i[2]}
-                 Posição:        {i[3]}
-                 Time:           {i[4]}
-                 Lado do Mapa:   {i[5]}
-                 Abates:         {i[6]}
-                 Mortes:         {i[7]}
-                 Assistências:   {i[8]}
-                Duração:        {i[9]}
-                Campeonato:     {i[10]}
-             -----------------------------
-            ''')
-    except Exception as e:
-        print("Partida nao encontrada",e)
-    finally:
-        cur.close()
-        conexao.close()
-
-#funcao que adiciona um campeonato maunalmente
-def Adicionarcampeonato():
-    conexao = conectar()
-    cur = conexao.cursor()
-    nome = input("Nome do campeonato: ")
-    ano = input("Ano (ex: 2023): ")
-    pais = input("País de ocorrência: ")
-    split = input("Split (ex: 1): ")
-    try:
-        
-        cur.execute("INSERT INTO campeonatos (nome, ano, pais_ocorrencia, split)VALUES (%s, %s, %s, %s)RETURNING id;", (nome, ano, pais, split))
-        conexao.commit()
-        print("Campeonato inserido com sucesso! ")
-    except Exception as e:
-        print("Erro ao inserir campeonato! ",e)
-    finally:
-        cur.close()
-        conexao.close()
-        
-# funcao que exibe jogadores em ativiade      
-def Exibirjogadoresematividade():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute("select id, nome, data_inicio_carreira, nacionalidade, id_posicao from jogadores where data_fim_carreira is null order by nome;")
-        jogadores = cur.fetchall()
-        if not jogadores:
-            print("Nenhum jogador ativo encontrado.")
-            return
-        print("\n--- Jogadores Ativos ---")
-        for j in jogadores:
-            print(f"ID: {j[0]} | Nome: {j[1]} | Início Carreira: {j[2]} | Nacionalidade: {j[3]} | ID Posição: {j[4]}")
-    except Exception as e:
-        print("Erro ao consultar jogadores ativos:", e)
-    finally:
-        cur.close()
-        conexao.close()
-    
-# funcao para listar os jogadores por time
-def Mostrarjogadoresportime():
-    conexao = conectar()
-    cur = conexao.cursor()
-    try:
-        cur.execute("""
-            select t.nome as time_nome,
-                   j.id as jogador_id,
-                   j.nome as jogador_nome,
-                   j.data_inicio_carreira,
-                   j.nacionalidade,
-                   pos.nome as posicao_nome
-            from jogadores j
-            join contratos c on j.id = c.id_jogador
-            join times t on c.id_time = t.id
-            join posicoes pos on j.id_posicao = pos.id
-            where j.data_fim_carreira is null
-              and c.data_fim is null
-            order by t.nome, j.nome;
-        """)
-
-        resultados = cur.fetchall()
-        if not resultados:
-            print("Nenhum jogador ativo encontrado para os times.")
-            return
-        
-        print("\n--- Jogadores Ativos por Time ---")
-        current_time = None
-        for row in resultados:
-            time_nome, jogador_id, jogador_nome, data_inicio, nacionalidade, posicao_nome = row
-            if time_nome != current_time:
-                current_time = time_nome
-                print(f"\nTime: {time_nome}")
-                print("-" * (6 + len(time_nome)))
-            print(f"id: {jogador_id} | nome: {jogador_nome} | posição: {posicao_nome} | início carreira: {data_inicio} | nacionalidade: {nacionalidade}")
-
-    except Exception as e:
-        print("Erro ao consultar jogadores por time:", e)
-    finally:
-        cur.close()
-        conexao.close()
-
-
-
-
-
-
-
-
-
+        print(f"Erro ao cadastrar posições iniciais: {e}")
