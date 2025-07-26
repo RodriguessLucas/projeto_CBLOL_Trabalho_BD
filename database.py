@@ -242,7 +242,21 @@ def cadastrarJogador():
         cur.close()
         conexao.close()
 
-
+def Mostrarjogadores():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("select id, nome, data_inicio_carreira, data_fim_carreira, nacionalidade, id_posicao from jogadores ORDER by id")
+        jogadores = cur.fetchall()
+        print(f"{'ID':<4} | {'Nome':<25} | {'Início':<10} | {'Fim':<10} | {'Nacionalidade':<20} | {'Posição':<8}")
+        print("-" * 90)
+        for jogador in jogadores:
+            id, nome, data_inicio, data_fim, nacionalidade, id_posicao = jogador
+            data_fim_str = data_fim.strftime("%d/%m/%Y") if data_fim else "Ativo"
+            print(f"{id:<4} | {nome:<25} | {data_inicio.strftime('%d/%m/%Y'):<10} | {data_fim_str:<10} | {nacionalidade:<20} | {id_posicao:<8}")
+    finally:
+        cur.close()
+        conexao.close()
 
 # FUNCAO PARA LISTAR TODOS OS JOGADORES CADASTRADOS 
 def listarTodosJogadores():
@@ -456,7 +470,7 @@ def Exibirpartida():
         cur.close()
         conexao.close()
         
-def Gerarpartida():
+def Inserirpartida():
     conexao = conectar()
     cur = conexao.cursor()
     try:
@@ -596,6 +610,171 @@ def Exibirtimes():
             print(f"{id:<4} | {nome:<25} | {sigla:<5} | {data_fundacao.strftime('%d/%m/%Y'):<10} | {nacionalidade:<20}")
     except Exception as e :
         print(e)
+    finally:
+        cur.close()
+        conexao.close()
+# funcao para listar as partidoas por ano
+def listarPartidasPorAno():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute('''
+            select 
+                p.id,
+                p.duracao_partida,
+                c.nome,
+                c.ano,
+                t1.nome,
+                t2.nome,
+                tv.nome
+            from partidas p
+            join campeonatos c on p.id_campeonato = c.id
+            join times t1 on p.id_time1 = t1.id
+            join times t2 on p.id_time2 = t2.id
+            join times tv on p.id_time_vencedor = tv.id
+            order by c.ano, p.id;
+        ''')
+        partidas = cur.fetchall()
+
+        print(f"{'ID':<4} | {'Ano':<5} | {'Duração':<10} | {'Campeonato':<20} | {'Time 1':<15} | {'Time 2':<15} | {'Vencedor':<15}")
+        print("-" * 100)
+        for partida in partidas:
+            id, duracao, campeonato, ano, time1, time2, vencedor = partida
+            print(f"{id:<4} | {ano:<5} | {duracao:<10} | {campeonato:<20} | {time1:<15} | {time2:<15} | {vencedor:<15}")
+    except Exception as e:
+        print("Erro ao listar partidas:", e)
+    finally:
+        cur.close()
+        conexao.close()
+
+# funcao para mostrar as estatisticas da partida
+def Estatisticasdapartida():
+    conexao = conectar()
+    cur = conexao.cursor()
+    id_partidainp = input("Digite o id da partida: ")
+    try:
+        cur.execute('''select 
+     e.id as id_estatistica,
+     j.nome as jogador,
+     p.nome as personagem,
+     pos.nome as posicao,
+     t.nome as time,
+     e.lado_mapa,
+     e.qntd_abates,
+     e.qntd_mortes,
+     e.qntd_assistencias,
+     pr.duracao_partida,
+     c.nome as campeonato
+     from estatisticas e
+     join jogadores j on e.id_jogador = j.id
+     join personagens p on e.id_personagem = p.id
+     join posicoes pos on e.id_posicao = pos.id
+     join partidas pr on e.id_partida = pr.id
+     join campeonatos c on pr.id_campeonato = c.id
+     join contratos ct on ct.id_jogador = j.id
+     join times t on ct.id_time = t.id
+     where e.id_partida = %s
+     order by e.id;
+     ''',(id_partidainp,))
+        resultados = cur.fetchall()
+        print("\n--- Estatísticas da Partida ---")
+        for i in resultados :
+            print(f'''
+                 ID Estatística: {i[0]}
+                 Jogador:        {i[1]}
+                 Personagem:     {i[2]}
+                 Posição:        {i[3]}
+                 Time:           {i[4]}
+                 Lado do Mapa:   {i[5]}
+                 Abates:         {i[6]}
+                 Mortes:         {i[7]}
+                 Assistências:   {i[8]}
+                Duração:        {i[9]}
+                Campeonato:     {i[10]}
+             -----------------------------
+            ''')
+    except Exception as e:
+        print("Partida nao encontrada",e)
+    finally:
+        cur.close()
+        conexao.close()
+
+#funcao que adiciona um campeonato maunalmente
+def Adicionarcampeonato():
+    conexao = conectar()
+    cur = conexao.cursor()
+    nome = input("Nome do campeonato: ")
+    ano = input("Ano (ex: 2023): ")
+    pais = input("País de ocorrência: ")
+    split = input("Split (ex: 1): ")
+    try:
+        
+        cur.execute("INSERT INTO campeonatos (nome, ano, pais_ocorrencia, split)VALUES (%s, %s, %s, %s)RETURNING id;", (nome, ano, pais, split))
+        conexao.commit()
+        print("Campeonato inserido com sucesso! ")
+    except Exception as e:
+        print("Erro ao inserir campeonato! ",e)
+    finally:
+        cur.close()
+        conexao.close()
+        
+# funcao que exibe jogadores em ativiade      
+def Exibirjogadoresematividade():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("select id, nome, data_inicio_carreira, nacionalidade, id_posicao from jogadores where data_fim_carreira is null order by nome;")
+        jogadores = cur.fetchall()
+        if not jogadores:
+            print("Nenhum jogador ativo encontrado.")
+            return
+        print("\n--- Jogadores Ativos ---")
+        for j in jogadores:
+            print(f"ID: {j[0]} | Nome: {j[1]} | Início Carreira: {j[2]} | Nacionalidade: {j[3]} | ID Posição: {j[4]}")
+    except Exception as e:
+        print("Erro ao consultar jogadores ativos:", e)
+    finally:
+        cur.close()
+        conexao.close()
+    
+# funcao para listar os jogadores por time
+def Mostrarjogadoresportime():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        cur.execute("""
+            select t.nome as time_nome,
+                   j.id as jogador_id,
+                   j.nome as jogador_nome,
+                   j.data_inicio_carreira,
+                   j.nacionalidade,
+                   pos.nome as posicao_nome
+            from jogadores j
+            join contratos c on j.id = c.id_jogador
+            join times t on c.id_time = t.id
+            join posicoes pos on j.id_posicao = pos.id
+            where j.data_fim_carreira is null
+              and c.data_fim is null
+            order by t.nome, j.nome;
+        """)
+
+        resultados = cur.fetchall()
+        if not resultados:
+            print("Nenhum jogador ativo encontrado para os times.")
+            return
+        
+        print("\n--- Jogadores Ativos por Time ---")
+        current_time = None
+        for row in resultados:
+            time_nome, jogador_id, jogador_nome, data_inicio, nacionalidade, posicao_nome = row
+            if time_nome != current_time:
+                current_time = time_nome
+                print(f"\nTime: {time_nome}")
+                print("-" * (6 + len(time_nome)))
+            print(f"id: {jogador_id} | nome: {jogador_nome} | posição: {posicao_nome} | início carreira: {data_inicio} | nacionalidade: {nacionalidade}")
+
+    except Exception as e:
+        print("Erro ao consultar jogadores por time:", e)
     finally:
         cur.close()
         conexao.close()
