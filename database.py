@@ -762,6 +762,29 @@ def Mostrarjogadoresportime():
     finally:
         cur.close()
         conexao.close()
+import psycopg2
+from psycopg2 import sql
+
+
+def Removercontrato():
+    conexao = conectar()
+    cur = conexao.cursor()
+    try:
+        id_contrato = int(input("Digite o ID do contrato que deseja remover: "))
+        cur.execute("select * from contratos where id = %s", (id_contrato,))
+        contrato = cur.fetchone()
+        if contrato:
+            cur.execute("delete from contratos where id = %s", (id_contrato,))
+            conexao.commit()
+            print("Contrato removido com sucesso.")
+        else:
+            print("Contrato com esse ID não existe.")
+    except Exception as e:
+        print("Erro ao remover contrato:", e)
+        conexao.rollback()
+    finally:
+        cur.close()
+        conexao.close()
 
 
 
