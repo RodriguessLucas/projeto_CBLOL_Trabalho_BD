@@ -1,12 +1,12 @@
 # main.py
 import database
-from crud_jogadores import listar_todos_jogadores, buscar_um_jogador, cadastrar_jogador, remover_jogador
-from crud_times import listar_times, adicionar_time, atualizar_time, remover_time
-from crud_contratos import adicionar_contrato, listar_contratos, atualizar_data_fim_contrato, remover_contrato
-from crud_campeonatos import adicionar_campeonato, listar_campeonatos
-from crud_personagens import adicionar_personagem, listar_personagens
-from crud_partidas import adicionar_partida, listar_partidas
-from crud_estatisticas import adicionar_estatistica, listar_estatisticas_por_partida
+from crud_jogadores import *
+from crud_times import *
+from crud_contratos import *
+from crud_campeonatos import *
+from crud_personagens import *
+from crud_partidas import *
+from crud_estatisticas import *
 
 # aqui é so a importacao de todos os métodos que temos no database.py
 # signica que vc pode so chaamr o método e passar as variaveis, tipo em java
@@ -137,6 +137,8 @@ def menu_principal():
     database.criar_tabelas()
     database.cadastrar_posicoes_iniciais()
     cadastrarPosicoes()
+    cadastrarCampeos()
+    
 
     while True:
         print("\n" + "="*20 + " MENU PRINCIPAL " + "="*20)
