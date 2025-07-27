@@ -3,7 +3,7 @@ from database import conectar
 from utilidades import is_string_valida
 
 
-def cadastrarCampeos():
+def cadastrar_campeoes():
     try:
         conexao = conectar()
         cur = conexao.cursor()

@@ -1,5 +1,6 @@
 # database.py
 import psycopg2
+from datetime import date, datetime 
 
 DB_CONFIG = {
     "dbname": "banco_cblol",
@@ -146,7 +147,7 @@ def verificarEntradaNacionalidade(nacionalidade):
 # AQUI EM DIANTE SÓ SÃO FUNCOES PARA ULTILIZAR OS DADOS NO POSTGRES
 # Fiz uma alteracao no loop de criar posicoes pq não estava funcionando 
 
-def cadastrarPosicoes():
+def cadastrar_posicoes():
     try:
         conexao = conectar()
         cur = conexao.cursor()
