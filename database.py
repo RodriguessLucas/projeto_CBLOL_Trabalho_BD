@@ -392,7 +392,7 @@ def atualizarDadosJogador():
 
 
 # Funcao de aposentar jogadores no futuro tera um trigger para encerrar io contrato assim q o joagdor se aposentar
-def Aposentarjogador():
+def aposentar_jogador():
    conexao = conectar()
    cur = conexao.cursor()
    id = input("Digte o id do jogador: ").strip()

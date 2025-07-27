@@ -32,7 +32,7 @@ def cadastrar_campeoes():
         
 
         for nome in campeoes_lol:
-            cur.execute("INSERT INTO posicoes(nome) VALUES(%s)", (nome,))
+            cur.execute("INSERT INTO personagens(nome) VALUES(%s)", (nome,))
             conexao.commit()
 
     except Exception as e:
@@ -76,7 +76,7 @@ def listar_personagens():
     try:
         with conectar() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id, nome FROM personagens ORDER BY nome")
+                cur.execute("SELECT id, nome FROM personagens ORDER BY nome DESC")
                 resultados = cur.fetchall()
 
                 if not resultados:

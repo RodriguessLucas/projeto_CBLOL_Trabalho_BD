@@ -1,6 +1,6 @@
 # main.py
 import database
-from database import cadastrar_posicoes, conectar, criar_tabelas
+from database import aposentar_jogador
 from crud_jogadores import listar_todos_jogadores, buscar_um_jogador, cadastrar_jogador, remover_jogador
 from crud_times import listar_times, adicionar_time, atualizar_time, remover_time
 from crud_contratos import adicionar_contrato, listar_contratos, atualizar_data_fim_contrato, remover_contrato
@@ -55,6 +55,7 @@ def menu_Crud_jogadores():
     print("2. Buscar um jogador por ID")
     print("3. Cadastrar novo jogador")
     print("4. Remover jogador")
+    print("5. Aposentar jogador por ID")
     print("0. Voltar")
 
     opcao = input("Escolha uma opção: ").strip()
@@ -64,6 +65,7 @@ def menu_Crud_jogadores():
     elif opcao == '2': buscar_um_jogador()
     elif opcao == '3': cadastrar_jogador()
     elif opcao == '4': remover_jogador()
+    elif opcao == '5' : aposentar_jogador()
     elif opcao == '0': return
     else:
             print("Opção inválida. Tente novamente.")
@@ -72,8 +74,8 @@ def menu_crud_times():
 
     print("\n[Gerenciamento de times]")
     print("1. Listar todos os times")
-    print("2. Buscar um time por ID")
-    print("3. Cadastrar novo time")
+    print("2. Cadastrar novo time")
+    print("3. Buscar um time por ID")
     print("4. Remover time")
     print("0. Voltar")
 
