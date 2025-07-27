@@ -43,6 +43,93 @@ def menu_consultas():
             break
         else:
             print("Opção inválida. Tente novamente.")
+        
+
+
+def menu_Crud_jogadores():
+    print("\n[Gerenciamento de Jogadores]")
+    print("1. Listar todos os jogadores")
+    print("2. Buscar um jogador por ID")
+    print("3. Cadastrar novo jogador")
+    print("4. Remover jogador")
+    print("0. Voltar")
+
+    opcao = input("Escolha uma opção: ").strip()
+    # CRUD Jogadores
+
+    if opcao == '1': listar_todos_jogadores()
+    elif opcao == '2': buscar_um_jogador()
+    elif opcao == '3': cadastrar_jogador()
+    elif opcao == '4': remover_jogador()
+    elif opcao == '0': return
+    else:
+            print("Opção inválida. Tente novamente.")
+
+def menu_crud_times():
+
+    print("\n[Gerenciamento de times]")
+    print("1. Listar todos os times")
+    print("2. Buscar um time por ID")
+    print("3. Cadastrar novo time")
+    print("4. Remover time")
+    print("0. Voltar")
+
+    opcao = input("Escolha uma opção: ").strip()
+
+    if opcao == '1': listar_times()
+    elif opcao == '2': adicionar_time()
+    elif opcao == '3': atualizar_time()
+    elif opcao == '4': remover_time()
+    elif opcao == '0': return
+    else:
+            print("Opção inválida. Tente novamente.")
+
+
+def menu_crud_contratos():
+    print("\n[Gerenciamento de Contratos]")
+    print("1. Listar todos os contratos")
+    print("2. Adicionar novo contrato")
+    print("3. Atualizar data de fim de um contrato")
+    print("4. Remover contrato")
+    print("0. Voltar")
+
+    opcao = input("Escolha uma opção: ").strip()
+
+    
+    if opcao == '1': listar_contratos()
+    elif opcao == '2': adicionar_contrato()
+    elif opcao == '3': atualizar_data_fim_contrato()
+    elif opcao == '4': remover_contrato()
+    elif opcao == '0': return
+    else:
+            print("Opção inválida. Tente novamente.")
+
+def menu_crud_dados_geral():
+    print("\n[Gerenciamento de Dados Gerais]")
+    print("1. Listar Campeonatos")
+    print("2. Adicionar Campeonato")
+    print("3. Listar Personagens")
+    print("4. Adicionar Personagem")
+    print("5. Listar Partidas")
+    print("6. Adicionar Partida")
+    print("7. Listar Estatísticas de uma Partida")
+    print("8. Adicionar Estatística de uma Partida")
+    print("0. Voltar")
+
+    opcao = input("Escolha uma opção: ").strip()
+
+    if opcao == '1': listar_campeonatos()
+    elif opcao == '2': adicionar_campeonato()
+    elif opcao == '3': listar_personagens()
+    elif opcao == '4': adicionar_personagem()
+    elif opcao == '5': listar_partidas()
+    elif opcao == '6': adicionar_partida()
+    elif opcao == '7': listar_estatisticas_por_partida()
+    elif opcao == '8': adicionar_estatistica()
+    elif opcao == '0': return
+    else:
+            print("Opção inválida. Tente novamente.")
+
 
 
 def menu_principal():
@@ -54,68 +141,29 @@ def menu_principal():
     while True:
         print("\n" + "="*20 + " MENU PRINCIPAL " + "="*20)
         
-        print("\n[Gerenciamento de Jogadores]")
-        print("1. Listar todos os jogadores")
-        print("2. Buscar um jogador por ID")
-        print("3. Cadastrar novo jogador")
-        print("4. Remover jogador")
 
-        print("\n[Gerenciamento de Times]")
-        print("5. Listar todos os times")
-        print("6. Adicionar novo time")
-        print("7. Atualizar dados de um time")
-        print("8. Remover time")
 
-        print("\n[Gerenciamento de Contratos]")
-        print("9. Listar todos os contratos")
-        print("10. Adicionar novo contrato")
-        print("11. Atualizar data de fim de um contrato")
-        print("12. Remover contrato")
-
-        print("\n[Gerenciamento de Dados Gerais]")
-        print("13. Listar Campeonatos")
-        print("14. Adicionar Campeonato")
-        print("15. Listar Personagens")
-        print("16. Adicionar Personagem")
-        print("17. Listar Partidas")
-        print("18. Adicionar Partida")
-        print("19. Listar Estatísticas de uma Partida")
-        print("20. Adicionar Estatística de uma Partida")
-
+        print("1. [Gerenciamento de Jogadores]")
+        print("2. [Gerenciamento de Contratos]")
+        print("3. [Gerenciamento de times]")
+        print("4. [Gerenciamento de Dados Gerais]")
         print("\n[Análise e Relatórios]")
-        print("30. Acessar Consultas Avançadas")
+        print("5. Acessar Consultas Avançadas")
         
         print("\n[Sistema]")
         print("0. Sair")
 
         opcao = input("Escolha uma opção: ").strip()
 
-        # CRUD Jogadores
-        if opcao == '1': listar_todos_jogadores()
-        elif opcao == '2': buscar_um_jogador()
-        elif opcao == '3': cadastrar_jogador()
-        elif opcao == '4': remover_jogador()
         # CRUD Times
-        elif opcao == '5': listar_times()
-        elif opcao == '6': adicionar_time()
-        elif opcao == '7': atualizar_time()
-        elif opcao == '8': remover_time()
-        # CRUD Contratos
-        elif opcao == '9': listar_contratos()
-        elif opcao == '10': adicionar_contrato()
-        elif opcao == '11': atualizar_data_fim_contrato()
-        elif opcao == '12': remover_contrato()
-        # CRUD Geral
-        elif opcao == '13': listar_campeonatos()
-        elif opcao == '14': adicionar_campeonato()
-        elif opcao == '15': listar_personagens()
-        elif opcao == '16': adicionar_personagem()
-        elif opcao == '17': listar_partidas()
-        elif opcao == '18': adicionar_partida()
-        elif opcao == '19': listar_estatisticas_por_partida()
-        elif opcao == '20': adicionar_estatistica()
+        if opcao == '1': menu_Crud_jogadores()
+        elif opcao == '2': menu_crud_contratos()
+        elif opcao == '3': menu_crud_times()
+        elif opcao == '4': menu_crud_dados_geral()
+
+
         # Consultas
-        elif opcao == '30': menu_consultas()
+        elif opcao == '5': menu_consultas()
         # Sistema
         elif opcao == '0':
             print("Saindo do sistema...")
