@@ -762,8 +762,6 @@ def Mostrarjogadoresportime():
     finally:
         cur.close()
         conexao.close()
-import psycopg2
-from psycopg2 import sql
 
 
 def Removercontrato():
