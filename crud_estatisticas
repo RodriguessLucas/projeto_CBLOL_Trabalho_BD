@@ -36,12 +36,12 @@ def adicionar_estatistica():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 cur.execute(sql, (id_partida, id_jogador, id_personagem, id_posicao, lado_mapa, abates, mortes, assistencias))
-                print("\n✅ Estatística adicionada com sucesso!")
+                print("\nEstatística adicionada com sucesso!")
 
     except ValueError:
         print("Erro: IDs, abates, mortes e assistências devem ser números inteiros.")
     except Exception as e:
-        print(f"\n❌ Erro ao adicionar estatística: {e}")
+        print(f"\nErro ao adicionar estatística: {e}")
 
 
 def listar_estatisticas_por_partida():
@@ -78,4 +78,4 @@ def listar_estatisticas_por_partida():
                     print(f"{jog:<25} | {pers:<20} | {pos:<10} | {kda:<10}")
 
     except Exception as e:
-        print(f"\n❌ Erro ao listar estatísticas: {e}")
+        print(f"\nErro ao listar estatísticas: {e}")

@@ -238,3 +238,4 @@ def consultar_jogadores_mais_de_cem_abates():
     except Exception as e:
         print(f"Erro ao executar a consulta: {e}")
 
+
